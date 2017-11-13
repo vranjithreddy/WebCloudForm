@@ -1,0 +1,92 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: Launches new ec2 instance for ci-cd
+Parameters:
+  KeyName:
+    Description: this is the name  of an existing EC2 KeyPair to enable SSH access to the instance
+    Type: String
+    Default: ravi-ops
+  ServerName:
+    Description: Name of the Server e.g. ravi-instancetype-*
+    Type: String
+    Default: test
+  datasize:
+    Description: size of db data mount point
+    Type: String
+    Default: 100
+  logsize:
+    Description: size of db log mount point
+    Type: String
+    Default: 50
+  Role:
+    Description: Name of the Role
+    Type: String
+    Default: web
+  LaunchUserEmail:
+    Description: Tag for email of person or resource that launched this instancee
+    Type: String
+    Default: ravi_d@yahoo.com
+  AmiId:
+    Description: Id of an EC2 AMI to launch
+    Type: String
+    Default: ami-18f8df7d
+  InstanceSecurityGroup:
+    Description: ID of the security group to be used
+    Type: String
+    Default: sg-01202368
+  SubnetId:
+    Description: Subnet to launch ec2 instance 
+    Type: String
+    Default: subnet-bf3bf0f2
+  PlacementTenancy:
+    Description: >-
+      The tenancy of the instance. An instance with a tenancy of dedicated runs
+      on single-tenant hardware and can only be launched into a VPC.
+    Type: String
+    AllowedValues:
+      - default
+      - dedicated
+    Default: default
+  VpcId:
+    Description: Id of VPC to launch into
+    Type: String
+    Default: vpc-e6d4ba8f
+  ArtifactBucket:
+    Description: Bucket for pipeline artifacts
+    Default: ravi-assets
+    Type: String
+  LogBucket:
+    Description: Bucket for pipeline artifacts
+    Default: ravi-assets
+    Type: String
+  WebInstanceProfile:
+    Description: Instance Profile to use
+    Default: web-iamrole-ProductSuiteInstanceProfile-BX46AV4X66H3
+    Type: String
+  Environment:
+    Description: Name of the Environment e.g. DevBuilder
+    Type: String
+    Default: dev
+Resources:
+  RaviEc2Instance:
+    Type: 'AWS::EC2::Instance'
+
+    Properties:
+      ImageId: !Ref AmiId
+      NetworkInterfaces:
+      - AssociatePublicIpAddress: true
+        DeviceIndex: 0
+        SubnetId: !Ref 'SubnetId'
+        GroupSet:
+        - !Ref InstanceSecurityGroup
+      InstanceType: t2.micro
+      IamInstanceProfile: !Ref WebInstanceProfile
+      KeyName: !Ref KeyName
+      Tags:
+        - Key: Name
+          Value: !Ref ServerName
+        - Key: LaunchUserEmail
+          Value: !Ref LaunchUserEmail
+Outputs:
+  RaviInstanceIpAddress:
+    Description: IP of test EC2 Instance
+    Value: !Sub '${RaviEc2Instance.PrivateIp}'
